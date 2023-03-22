@@ -289,17 +289,24 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	printf( "%lf\n", data_rhs[ index ] );
     }
 #endif
-#if 0    // print data_weight
+#if 1    // print data_weight
     printf( ">>>>weight_mat row = %d\n>>>>weight_mat column = %d\n", data_mat_row, data_mat_row );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
     {
 	for( int index_j = 0; index_j < data_mat_row; index_j++ )
 	{
-	    printf( "%lf ", data_weight[ index_i ][ index_j ] );
+	    printf( "%.2le ", data_weight[ index_i ][ index_j ] );
 	}
 	putchar( '\n' );
     }
 #endif
+
+    // updating linear system with weighted matrix
+    /*
+     * x = argmin || W A x - W b ||
+     * W = inverse( data_weight )
+     * */
+    update_linsys_weight_mat( data_weight, data_mat, data_rhs, data_mat_row, data_mat_column );
 
     // solver adjustment linear system
     /**/
