@@ -121,9 +121,15 @@ void adjustment_impl( int * * data_number, double * * data_src,
      *
      * solution x
      *     size x = ( count_node_unknown * 3 ) x 1
+     *
+     * weighted matrix W_i
+     *     W_i is diagonal matrix, size W_i = 3 x 3
+     *     W_i = diag( sigma_xx, sigma_yy, sigma_zz );
+     *     W is block diagonal matrix, W_1, W_2, ..., size W = ( count_unknown * 3 ) x ( count_unknown * 3 )
      * */
     int data_mat_row = count_unknown * 3, data_mat_column = count_node_unknown * 3;
     double * * data_mat = NULL;
+    double * * data_weight = NULL;
     double * data_rhs = NULL;
     double * data_sol = NULL;
 
@@ -140,6 +146,26 @@ void adjustment_impl( int * * data_number, double * * data_src,
     for( int index = 0; index < data_mat_row; index++ )
     {
 	if( ( *( data_mat + index ) = ( double * ) malloc( data_mat_column * sizeof( double ) ) ) 
+		== NULL )
+	{
+	    fprintf( stderr, "Memory allocation failed!\n" );
+	    exit( EXIT_FAILURE );
+	}
+    }
+
+    // data_weight
+    /*
+     * size data_weight = data_mat_row x data_mat_row
+     * */
+    if( ( data_weight = ( double * * ) malloc( data_mat_row * sizeof( double * ) ) ) 
+	    == NULL )
+    {
+	fprintf( stderr, "Memory allocation failed!\n" );
+	exit( EXIT_FAILURE );
+    }
+    for( int index = 0; index < data_mat_row; index++ )
+    {
+	if( ( *( data_weight + index ) = ( double * ) malloc( data_mat_row * sizeof( double ) ) ) 
 		== NULL )
 	{
 	    fprintf( stderr, "Memory allocation failed!\n" );
@@ -190,6 +216,26 @@ void adjustment_impl( int * * data_number, double * * data_src,
     }
 #endif
 
+    // initialize data_weight = 0
+    for( int index_i = 0; index_i < data_mat_row; index_i++ )
+    {
+	for( int index_j = 0; index_j < data_mat_row; index_j++ )
+	{
+	    data_weight[ index_i ][ index_j ] = 0;
+	}
+    }
+#if 0    // print data_weight
+    printf( ">>>>weight_row = %d\n>>>>weight_column = %d\n", data_mat_row, data_mat_row );
+    for( int index_i = 0; index_i < data_mat_row; index_i++ )
+    {
+	for( int index_j = 0; index_j < data_mat_row; index_j++ )
+	{
+	    printf( "%lf ", data_weight[ index_i ][ index_j ] );
+	}
+	putchar( '\n' );
+    }
+#endif
+
     // initialize data_rhs = 0
     for( int index = 0; index < data_mat_row; index++ )
     {
@@ -224,7 +270,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
     assemble_adjust_linsys( data_number, data_src, data_row, data_column,
 	    known_solution_1, known_solution_2,
 	    known_number_1, known_number_2,
-	    data_mat, data_rhs );
+	    data_mat, data_rhs, data_weight );
 #if 1    // print data_mat
     printf( ">>>>mat_row = %d\n>>>>mat_column = %d\n", data_mat_row, data_mat_column );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
@@ -241,6 +287,17 @@ void adjustment_impl( int * * data_number, double * * data_src,
     for( int index = 0; index < data_mat_row; index++ )
     {
 	printf( "%lf\n", data_rhs[ index ] );
+    }
+#endif
+#if 0    // print data_weight
+    printf( ">>>>weight_mat row = %d\n>>>>weight_mat column = %d\n", data_mat_row, data_mat_row );
+    for( int index_i = 0; index_i < data_mat_row; index_i++ )
+    {
+	for( int index_j = 0; index_j < data_mat_row; index_j++ )
+	{
+	    printf( "%lf ", data_weight[ index_i ][ index_j ] );
+	}
+	putchar( '\n' );
     }
 #endif
 

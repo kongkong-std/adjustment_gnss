@@ -6,7 +6,7 @@
 
 void assemble_adjust_linsys( int * *, double * *, int, int,
 	double *, double *, int, int,
-	double * *, double *);
+	double * *, double *, double * *);
 void solver_adjust_linsys( double * *, double *, int, int, double * );
 
 #endif
