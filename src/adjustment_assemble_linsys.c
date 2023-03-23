@@ -21,14 +21,15 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 	    // unknown node -- unknown node
 	    for( int index_i = 0; index_i < 3; index_i++ )
 	    {
-		// weight matrix assembling
+#if 0	// weight matrix assembling
 		assemble_weight_matrix( weight_mat, data_src, index, index_i );
-		
+#endif		
+		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
 		rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ];
 
-#if 0
+#if 1
 		// mat = weight_mat * mat, rhs = weight_mat * rhs
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *= 
 		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -57,10 +58,11 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 		        // weight matrix assembling
 		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
 			
+		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_1[ index_i ];
 
-#if 0
+#if 1
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -76,10 +78,11 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 		        // weight matrix assembling
 		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
 			
+		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_2[ index_i ];
 
-#if 0
+#if 1
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -99,10 +102,11 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 		        // weight matrix assembling
 		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
 			
+		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_1[ index_i ];
 
-#if 0
+#if 1
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -118,10 +122,11 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 		        // weight matrix assembling
 		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
 			
+		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_2[ index_i ];
 
-#if 0
+#if 1
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];

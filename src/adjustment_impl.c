@@ -306,7 +306,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
      * x = argmin || W A x - W b ||
      * W = inverse( data_weight )
      * */
-    update_linsys_weight_mat( data_weight, data_mat, data_rhs, data_mat_row, data_mat_column );
+   // update_linsys_weight_mat( data_weight, data_mat, data_rhs, data_mat_row, data_mat_column );
 
     // solver adjustment linear system
     /**/
