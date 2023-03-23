@@ -14,7 +14,8 @@ int main()
     puts( "============test adjustment of GNSS network==========" );
 
     FILE * fp_adjust = NULL;
-    if( ( fp_adjust = fopen( "../file/adjust_data.txt", "rb"  ) ) 
+    //if( ( fp_adjust = fopen( "../file/adjust_data.txt", "rb"  ) ) 
+    if( ( fp_adjust = fopen( "../file/adjust_data_1.txt", "rb"  ) ) 
 	    == NULL )
     {
 	fprintf( stderr, "Cannot open file!\n" );
@@ -24,7 +25,7 @@ int main()
     int size_data_row = 0, size_data_column = 0;
     fscanf( fp_adjust, "%d%d", &size_data_row, &size_data_column );
 
-#if 0
+#if 1
     printf( "row = %d\ncolumn = %d\n", size_data_row, size_data_column );
 #endif
 
@@ -83,7 +84,7 @@ int main()
 	}
     }
 
-#if 0    // print data_src
+#if 1    // print data_src
     puts( ">>>>show source data" );
     for( int index = 0; index < size_data_row; index++ )
     {

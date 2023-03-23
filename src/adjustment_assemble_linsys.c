@@ -4,6 +4,83 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 	double * known_solution_1, double * known_solution_2,
 	int known_number_1, int known_number_2,
 	double * * mat, double * rhs, double * * weight_mat )
+#if 0
+{
+    puts( "============adjustment linear system assembling============" );
+
+    // cases
+    /*
+     * unknown node -- unknown node
+     * known node -- unknown node
+     * */
+    for( int index = 0; index < data_row; index++ )
+    {
+	if( data_number[ index ][ 0 ] != known_number_1 && data_number[ index ][ 1 ] != known_number_1 )
+	{
+	    // unknown node -- unknwon node
+	    for( int index_i = 0; index_i < 3; index_i++ )
+	    {
+		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] = 1;
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] = -1;
+		rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ];
+
+#if 1
+		// mat = weight_mat * mat, rhs = weight_mat * rhs
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] *= 
+		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] *= 
+		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+		rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+#endif
+	    }
+	}
+	else if( data_number[ index ][ 0 ] == known_number_1 && data_number[ index ][ 1 ] == known_number_1 )
+	{
+	    // known node -- known node
+	}
+	else
+	{
+	    // known node -- unknown node
+	    if( data_number[ index ][ 0 ] != known_number_1 )
+	    {
+		// data_number[ index ][ 0 ] is unknown node, data_number[ index ][ 1 ] is known node
+		for( int index_i = 0; index_i < 3; index_i++ )
+		{
+		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] = -1;
+		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_1[ index_i ];
+
+#if 1
+		    // mat = weight_mat * mat, rhs = weight_mat * rhs
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] *=
+			weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+		    rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+#endif
+		}
+	    }
+	    else
+	    {
+		// data_number[ index ][ 1 ] is unknwo node, data_number[ index ][ 0 ] is known node
+		for( int index_i = 0; index_i < 3; index_i++ )
+		{
+		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] = 1;
+		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_1[ index_i ];
+
+#if 1
+		    // mat = weight_mat * mat, rhs = weight_mat * rhs
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] *=
+			weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+		    rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+#endif
+		}
+	    }
+	}
+    }
+}
+#endif
+#if 1
 {
     puts( "============adjustment linear system assembling============" );
 
@@ -29,7 +106,7 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
 		rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ];
 
-#if 1
+#if 0
 		// mat = weight_mat * mat, rhs = weight_mat * rhs
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *= 
 		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -62,7 +139,7 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_1[ index_i ];
 
-#if 1
+#if 0
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -72,6 +149,7 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 		}
 		else
 		{
+#if 1
 		    // known node is known_number_2
 		    for( int index_i = 0; index_i < 3; index_i++ )
 		    {
@@ -82,13 +160,14 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_2[ index_i ];
 
-#if 1
+#if 0
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
 			rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
 #endif
 		    }
+#endif
 		}
 	    }
 	    else if( data_number[ index ][ 1 ] != known_number_1 && data_number[ index ][ 1 ] != known_number_2 )
@@ -106,7 +185,7 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_1[ index_i ];
 
-#if 1
+#if 0
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -116,6 +195,7 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 		}
 		else
 		{
+#if 1
 		    // known node is known_number_2
 		    for( int index_i = 0; index_i < 3; index_i++ )
 		    {
@@ -126,18 +206,20 @@ void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
 			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_2[ index_i ];
 
-#if 1
+#if 0
 			// mat = weight_mat * mat, rhs = weight_mat * rhs
 			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *=
 			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
 			rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
 #endif
 		    }
+#endif
 		}
 	    }
 	}
     }
 }
+#endif
 
 void assemble_weight_matrix( double * * weight_mat, double * * data_src, int index, int index_i )
 {

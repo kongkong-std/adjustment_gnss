@@ -11,8 +11,12 @@ void adjustment_impl( int * * data_number, double * * data_src,
      *     node number 2
      * */
     int known_number_1 = 1, known_number_2 = 2;
-    double known_solution_1[ 3 ] = { 402.35087, -4652995.30109, 4349760.77753 };
-    double known_solution_2[ 3 ] = { 8086.03178, -4642712.84739, 4360439.08326 };
+    
+    //double known_solution_1[ 3 ] = { 402.35087, -4652995.30109, 4349760.77753 };
+    //double known_solution_2[ 3 ] = { 8086.03178, -4642712.84739, 4360439.08326 };
+    
+    double known_solution_1[ 3 ] = { 3213503.9707, 852378.2675, 402.9194 }; 
+    double known_solution_2[ 3 ] = { 3213519.0995, 852411.9884, 387.2503 }; 
 
     /*
      * count of observation data contains unknown nodes
@@ -20,13 +24,22 @@ void adjustment_impl( int * * data_number, double * * data_src,
     int count_unknown = 0;
     for( int index_i = 0; index_i < data_row; index_i++ )
     {
+#if 1
 	if( ! ( ( ( data_number[ index_i ][ 0 ] == known_number_1 ) && ( data_number[ index_i ][ 1 ] == known_number_2 ) ) 
 		|| ( ( data_number[ index_i ][ 0 ] == known_number_2 ) && ( data_number[ index_i ][ 1 ] == known_number_1 ) ) ) )
 	{
 	    count_unknown++;
 	}
-    }
+#endif
+
 #if 0
+	if( !( data_number[ index_i ][ 0 ] == known_number_1 && data_number[ index_i ][ 1 ] == known_number_1 ) )
+	{
+	    count_unknown++;
+	}
+#endif
+    }
+#if 1
     printf( ">>>>count of unknown is %d\n", count_unknown );
 #endif
 
@@ -67,6 +80,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
     for( int index = 0; index < count_node_unknown; index++ )
     {
 	if( node_unknown[ index ] == known_number_1 || node_unknown[ index ] == known_number_2 )
+	//if( node_unknown[ index ] == known_number_1 )
 	{
 	    // delete known node
 	    for( int index_i = index; index_i < count_node_unknown; index_i++ )
@@ -77,7 +91,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	    index--;
 	}
     }
-#if 0    // print unknown node
+#if 1    // print unknown node
     printf( ">>>>number of unknown node is %d\n", count_node_unknown );
     for( int index = 0; index < count_node_unknown; index++ )
     {
@@ -99,7 +113,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	    }
 	}
     }
-#if 0    // print sorted node
+#if 1    // print sorted node
     printf( ">>>>after sorting...\n" );
     for( int index = 0; index < count_node_unknown; index++ )
     {
@@ -204,7 +218,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	}
     }
 
-#if 0    // print data_mat
+#if 1    // print data_mat
     printf( ">>>>mat_row = %d\n>>>>mat_column = %d\n", data_mat_row, data_mat_column );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
     {
@@ -224,7 +238,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	    data_weight[ index_i ][ index_j ] = 0;
 	}
     }
-#if 0    // print data_weight
+#if 1    // print data_weight
     printf( ">>>>weight_row = %d\n>>>>weight_column = %d\n", data_mat_row, data_mat_row );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
     {
@@ -242,7 +256,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	data_rhs[ index ] = 0;
     }
 
-#if 0    // print data_rhs
+#if 1    // print data_rhs
     for( int index = 0; index < data_mat_row; index++ )
     {
 	printf( "%lf\n", data_rhs[ index ] );
