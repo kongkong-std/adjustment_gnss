@@ -1,225 +1,103 @@
-#include "adjustment_assemble_linsys.h"
+#include "../include/adjustment_assemble_linsys.h"
 
-void assemble_adjust_linsys( int * * data_number, double * * data_src, int data_row, int data_column,
-	double * known_solution_1, double * known_solution_2,
-	int known_number_1, int known_number_2,
-	double * * mat, double * rhs, double * * weight_mat )
-#if 0
+void assemble_adjust_linsys( double * * mat, double * rhs, double * * weight_mat,
+	int * * data_number, double * * data_src,
+	int * number_known, double * * data_known,
+	int data_row, int count_known,
+	int count, int row_count_unknown )
 {
     puts( "============adjustment linear system assembling============" );
 
     // cases
     /*
-     * unknown node -- unknown node
-     * known node -- unknown node
-     * */
-    for( int index = 0; index < data_row; index++ )
-    {
-	if( data_number[ index ][ 0 ] != known_number_1 && data_number[ index ][ 1 ] != known_number_1 )
-	{
-	    // unknown node -- unknwon node
-	    for( int index_i = 0; index_i < 3; index_i++ )
-	    {
-		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] = 1;
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] = -1;
-		rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ];
-
-#if 1
-		// mat = weight_mat * mat, rhs = weight_mat * rhs
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] *= 
-		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] *= 
-		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-		rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
-	    }
-	}
-	else if( data_number[ index ][ 0 ] == known_number_1 && data_number[ index ][ 1 ] == known_number_1 )
-	{
-	    // known node -- known node
-	}
-	else
-	{
-	    // known node -- unknown node
-	    if( data_number[ index ][ 0 ] != known_number_1 )
-	    {
-		// data_number[ index ][ 0 ] is unknown node, data_number[ index ][ 1 ] is known node
-		for( int index_i = 0; index_i < 3; index_i++ )
-		{
-		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] = -1;
-		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_1[ index_i ];
-
-#if 1
-		    // mat = weight_mat * mat, rhs = weight_mat * rhs
-		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 2 ) + index_i ] *=
-			weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-		    rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
-		}
-	    }
-	    else
-	    {
-		// data_number[ index ][ 1 ] is unknwo node, data_number[ index ][ 0 ] is known node
-		for( int index_i = 0; index_i < 3; index_i++ )
-		{
-		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] = 1;
-		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_1[ index_i ];
-
-#if 1
-		    // mat = weight_mat * mat, rhs = weight_mat * rhs
-		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 2 ) + index_i ] *=
-			weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-		    rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
-		}
-	    }
-	}
-    }
-}
-#endif
-#if 1
-{
-    puts( "============adjustment linear system assembling============" );
-
-    // cases
-    /*
+     * baseline
      * unknown node -- unknown node
      * known node -- known node
-     * known node -- unknown node
+     * unknown node -- known node
      * */
+
+    // assemble mat, weight_mat, rhs
     for( int index = 0; index < data_row; index++ )
     {
-	if( data_number[ index ][ 0 ] != known_number_1 && data_number[ index ][ 0 ] != known_number_2
-	 && data_number[ index ][ 1 ] != known_number_1 && data_number[ index ][ 1 ] != known_number_2 )
+	if( IsVertexKnown( data_number[ index ][ 0 ], number_known, count_known ) != 1 
+		&& IsVertexKnown( data_number[ index ][ 1 ], number_known, count_known ) != 1 )
 	{
 	    // unknown node -- unknown node
 	    for( int index_i = 0; index_i < 3; index_i++ )
 	    {
-#if 0	// weight matrix assembling
-		assemble_weight_matrix( weight_mat, data_src, index, index_i );
-#endif		
 		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] = 1;
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] = -1;
 		rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ];
 
-#if 0
 		// mat = weight_mat * mat, rhs = weight_mat * rhs
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *= 
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] *= 
 		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] *= 
+		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] *= 
 		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
 		rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
 	    }
 	}
-	else if( ( data_number[ index ][ 0 ] == known_number_1 && data_number[ index ][ 1 ] == known_number_2 ) 
-		|| ( data_number[ index ][ 0 ] == known_number_2 && data_number[ index ][ 1 ] == known_number_1 ) )
+	else if( IsVertexKnown( data_number[ index ][ 0 ], number_known, count_known ) == 1 
+		&& IsVertexKnown( data_number[ index ][ 1 ], number_known, count_known ) == 1 )
 	{
 	    // known node -- known node
+	    // keep mat, rhs
 	}
 	else
 	{
 	    // known node -- unknown node
-	    if( data_number[ index ][ 0 ] != known_number_1 && data_number[ index ][ 0 ] != known_number_2 )
+	    if( IsVertexKnown( data_number[ index ][ 0 ], number_known, count_known ) != 1 )
 	    {
 		// data_number[ index ][ 0 ] is unknown node, data_number[ index ][ 1 ] is known node
-		if( data_number[ index ][ 1 ] == known_number_1 )
+		for( int index_i = 0; index_i < 3; index_i++ )
 		{
-		    // known node is known_number_1
-		    for( int index_i = 0; index_i < 3; index_i++ )
-		    {
-		        // weight matrix assembling
-		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
-			
-		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
-			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_1[ index_i ];
+		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] = -1;
+		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] 
+			- data_known[ data_number[ index ][ 1 ] ][ index_i ];
 
-#if 0
-			// mat = weight_mat * mat, rhs = weight_mat * rhs
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] *=
-			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-			rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
-		    }
-		}
-		else
-		{
-#if 1
-		    // known node is known_number_2
-		    for( int index_i = 0; index_i < 3; index_i++ )
-		    {
-		        // weight matrix assembling
-		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
-			
-		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] = -1;
-			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] - known_solution_2[ index_i ];
-
-#if 0
-			// mat = weight_mat * mat, rhs = weight_mat * rhs
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - 3 ) + index_i ] *=
-			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-			rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
-		    }
-#endif
+		    // mat = weight_mat * mat, rhs = weight_mat * rhs
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] *=
+		       	weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+		    rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
 		}
 	    }
-	    else if( data_number[ index ][ 1 ] != known_number_1 && data_number[ index ][ 1 ] != known_number_2 )
+	    else
 	    {
 		// data_number[ index ][ 1 ] is unknown node, data_number[ index ][ 0 ] is known node
-		if( data_number[ index ][ 0 ] == known_number_1 )
+		for( int index_i = 0; index_i < 3; index_i++ )
 		{
-		    // known node is known_number_1
-		    for( int index_i = 0; index_i < 3; index_i++ )
-		    {
-		        // weight matrix assembling
-		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
-			
-		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
-			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_1[ index_i ];
+		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] = 1;
+		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] 
+			+ data_known[ data_number[ index ][ 0 ] ][ index_i ];
 
-#if 0
-			// mat = weight_mat * mat, rhs = weight_mat * rhs
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *=
-			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-			rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
-		    }
-		}
-		else
-		{
-#if 1
-		    // known node is known_number_2
-		    for( int index_i = 0; index_i < 3; index_i++ )
-		    {
-		        // weight matrix assembling
-		        assemble_weight_matrix( weight_mat, data_src, index, index_i );
-			
-		weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] = 1;
-			rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] + known_solution_2[ index_i ];
-
-#if 0
-			// mat = weight_mat * mat, rhs = weight_mat * rhs
-			mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - 3 ) + index_i ] *=
-			    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-			rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
-#endif
-		    }
-#endif
+		    // mat = weight_mat * mat, rhs = weight_mat * rhs
+		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] *=
+		       	weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
+		    rhs[ 3 * index + index_i ] *= weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
 		}
 	    }
 	}
     }
 }
-#endif
+
+int IsVertexKnown( int value, int * number_known, int size_number_known )
+{
+    int status = 0;
+
+    for( int index = 0; index < size_number_known; index++ )
+    {
+	if( *( number_known + index ) == value )
+	{
+	    status = 1;
+	    break;
+	}
+    }
+
+    return status;
+}
 
 void assemble_weight_matrix( double * * weight_mat, double * * data_src, int index, int index_i )
 {

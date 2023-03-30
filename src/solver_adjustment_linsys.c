@@ -1,4 +1,4 @@
-#include "solver_adjustment_linsys.h"
+#include "../include/solver_adjustment_linsys.h"
 
 void solver_adjust_linsys( double * * mat, double * rhs, int row, int column,
 	double * sol )

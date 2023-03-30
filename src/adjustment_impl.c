@@ -1,128 +1,133 @@
-#include "adjustment_impl.h"
+#include "../include/adjustment_impl.h"
 
-void adjustment_impl( int * * data_number, double * * data_src,
-	int data_row, int data_column, int data_known )
+void graph_adjustment( AdjGraph * graph, int count_known, int * number_known, double * * data_known )
 {
-    puts( "============adjustment of GNSS network implementation============" );
+    int data_row = 0, data_column = 0;
+    data_row = graph->count_edge;
+    data_column = sizeof( graph->array->head->weight ) / sizeof( graph->array->head->weight[ 0 ] );
+
+    int * * data_number = NULL;    // vertex number
+    double * * data_src = NULL;    // observation data
 
     /*
-     * number of known data
-     *     node number 1
-     *     node number 2
+     * size data_number = data_row x 2
+     * size data_number = data_row x data_column
      * */
-    int known_number_1 = 1, known_number_2 = 2;
-    
-    //double known_solution_1[ 3 ] = { 402.35087, -4652995.30109, 4349760.77753 };
-    //double known_solution_2[ 3 ] = { 8086.03178, -4642712.84739, 4360439.08326 };
-    
-    double known_solution_1[ 3 ] = { 3213503.9707, 852378.2675, 402.9194 }; 
-    double known_solution_2[ 3 ] = { 3213519.0995, 852411.9884, 387.2503 }; 
-
-    /*
-     * count of observation data contains unknown nodes
-     * */
-    int count_unknown = 0;
-    for( int index_i = 0; index_i < data_row; index_i++ )
-    {
-#if 1
-	if( ! ( ( ( data_number[ index_i ][ 0 ] == known_number_1 ) && ( data_number[ index_i ][ 1 ] == known_number_2 ) ) 
-		|| ( ( data_number[ index_i ][ 0 ] == known_number_2 ) && ( data_number[ index_i ][ 1 ] == known_number_1 ) ) ) )
-	{
-	    count_unknown++;
-	}
-#endif
-
-#if 0
-	if( !( data_number[ index_i ][ 0 ] == known_number_1 && data_number[ index_i ][ 1 ] == known_number_1 ) )
-	{
-	    count_unknown++;
-	}
-#endif
-    }
-#if 1
-    printf( ">>>>count of unknown is %d\n", count_unknown );
-#endif
-
-    /*
-     * array of unknown node
-     * */
-    int * node_unknown = NULL;
-    int count_node_unknown = data_row * 2;
-    if( ( node_unknown = ( int * ) malloc( count_node_unknown * sizeof( int ) ) ) 
+    if( ( data_number = ( int * * ) malloc( data_row * sizeof( int * ) ) ) 
 	    == NULL )
     {
 	fprintf( stderr, "Memory allocation failed!\n" );
 	exit( EXIT_FAILURE );
     }
-    for( int index = 0; index < 2; index++ )
+    for( int index = 0; index < data_row; index++ )
     {
-	for( int index_i = 0; index_i < data_row; index_i++ )
+	if( ( *( data_number + index ) = ( int * ) malloc( 2 * sizeof( int ) ) ) 
+		== NULL )
 	{
-	    node_unknown[ index * data_row + index_i ] = data_number[ index_i ][ index ];
+	    fprintf( stderr, "Memory allocation failed!\n" );
+	    exit( EXIT_FAILURE );
 	}
     }
-    for( int index_i = 0; index_i < count_node_unknown; index_i++ )
+
+    if( ( data_src = ( double * * ) malloc( data_row * sizeof( double * ) ) ) 
+	    == NULL )
     {
-	for( int index_j = index_i + 1; index_j < count_node_unknown; index_j++ )
+	fprintf( stderr, "Memory allocation failed!\n" );
+	exit( EXIT_FAILURE );
+    }
+    for( int index = 0; index < data_row; index++ )
+    {
+	if( ( *( data_src + index ) = ( double * ) malloc( data_column * sizeof( double ) ) ) 
+		== NULL )
 	{
-	    if( node_unknown[ index_j ] == node_unknown[ index_i ] )
+	    fprintf( stderr, "Memory allocation failed!\n" );
+	    exit( EXIT_FAILURE );
+	}
+    }
+
+    // graph traversal
+    for( int index = 0, index_temp = 0; index < graph->count_vertex && index_temp < data_row; index++ )
+    {
+	AdjListNode * head_node = graph->array[ index ].head;
+
+	while( head_node != NULL )
+	{
+	    // data_number
+	    data_number[ index_temp ][ 0 ] = index;
+	    data_number[ index_temp ][ 1 ] = head_node->dest;
+
+	    // data_src
+	    for( int index_i = 0; index_i < data_column; index_i++ )
 	    {
-		// deleting node_unknown[ index_j ]
-		for( int index_k = index_j; index_k < count_node_unknown; index_k++ )
-		{
-		    node_unknown[ index_k ] = node_unknown[ index_k + 1 ];
-		}
-		count_node_unknown--;
-		index_j--;
+		data_src[ index_temp ][ index_i ] = head_node->weight[ index_i ];
 	    }
+
+	    head_node = head_node->next;
+	    index_temp++;
 	}
     }
-    for( int index = 0; index < count_node_unknown; index++ )
+#if 1    // print data
+    puts( ">>>>>>>>>>>>data_number:" );
+    for( int index_i = 0; index_i < data_row; index_i++ )
     {
-	if( node_unknown[ index ] == known_number_1 || node_unknown[ index ] == known_number_2 )
-	//if( node_unknown[ index ] == known_number_1 )
+	for( int index_j = 0; index_j < 2; index_j++ )
 	{
-	    // delete known node
-	    for( int index_i = index; index_i < count_node_unknown; index_i++ )
-	    {
-		node_unknown[ index_i ] = node_unknown[ index_i + 1 ];
-	    }
-	    count_node_unknown--;
-	    index--;
+	    printf( "%d ", data_number[ index_i ][ index_j ] );
 	}
+	putchar( '\n' );
     }
-#if 1    // print unknown node
-    printf( ">>>>number of unknown node is %d\n", count_node_unknown );
-    for( int index = 0; index < count_node_unknown; index++ )
+    puts( "\n>>>>>>>>>>>>data_src:" );
+    for( int index_i = 0; index_i < data_row; index_i++ )
     {
-	printf( "%d\n", node_unknown[ index ] );
+	for( int index_j = 0; index_j < data_column; index_j++ )
+	{
+	    printf( "%.4le ", data_src[ index_i ][ index_j ] );
+	}
+	putchar( '\n' );
     }
 #endif
 
-    // sorting node in number order
-    for( int index = 0; index < count_node_unknown; index++ )
+    adjustment_impl( data_number, data_src, number_known, data_known,
+	    data_row, data_column, count_known, graph->count_vertex);
+
+    // free
+    for( int index = 0; index < data_row; index++ )
     {
-	for( int index_i = index + 1; index_i < count_node_unknown; index_i++ )
+	free( *( data_src + index ) );
+    }
+    free( data_src );
+    for( int index = 0; index < data_row; index++ )
+    {
+	free( *( data_number + index ) );
+    }
+    free( data_number );
+}
+
+void adjustment_impl( int * * data_number, double * * data_src, int * number_known, double * * data_known,
+	int data_row, int data_column, int count_known, int count )
+{
+    puts( "============adjustment of GNSS network implementation============" );
+
+    /*
+     * count of baseline observation data contains unknown node(s)
+     * */
+    int row_count_unknown = 0;
+    for( int index_i = 0; index_i < data_row; index_i++ )
+    {
+	//if( ( int status = IsKnownVertex( *( data_number + index_i ), number_known, 2, count_known ) ) != 1 )
+	if( IsKnownVertex( *( data_number + index_i ), number_known, 2, count_known ) != 1 )
 	{
-	    if( *( node_unknown + index_i ) < *( node_unknown + index ) )
-	    {
-		int temp = 0;
-		temp = *( node_unknown + index_i );
-		*( node_unknown + index_i ) = *( node_unknown + index );
-		*( node_unknown + index ) = temp;
-	    }
+	    row_count_unknown++;
 	}
     }
-#if 1    // print sorted node
-    printf( ">>>>after sorting...\n" );
-    for( int index = 0; index < count_node_unknown; index++ )
-    {
-	printf( "%d\n", *( node_unknown + index ) );
-    }
+#if 1
+    printf( ">>>>row count of unknown is %d\n", row_count_unknown );
 #endif
 
     // linear system
     /*
+     * count_node_unknwon = count - count_known
+     *
      * P_j = P_i + P_ij, i \ne j
      * P_i = [x_i, y_i, z_i], i = 1, 2, ..., node in GNSS network
      * P_ij observation data
@@ -141,7 +146,8 @@ void adjustment_impl( int * * data_number, double * * data_src,
      *     W_i = diag( sigma_xx, sigma_yy, sigma_zz );
      *     W is block diagonal matrix, W_1, W_2, ..., size W = ( count_unknown * 3 ) x ( count_unknown * 3 )
      * */
-    int data_mat_row = count_unknown * 3, data_mat_column = count_node_unknown * 3;
+    // int data_mat_row = row_count_unknown * 3, data_mat_column = ( count - count_known ) * 3;
+    int data_mat_row = data_row * 3, data_mat_column = ( count - count_known ) * 3;
     double * * data_mat = NULL;
     double * * data_weight = NULL;
     double * data_rhs = NULL;
@@ -217,8 +223,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	    data_mat[ index_i ][ index_j ] = 0;
 	}
     }
-
-#if 1    // print data_mat
+#if 0    // print data_mat
     printf( ">>>>mat_row = %d\n>>>>mat_column = %d\n", data_mat_row, data_mat_column );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
     {
@@ -238,7 +243,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	    data_weight[ index_i ][ index_j ] = 0;
 	}
     }
-#if 1    // print data_weight
+#if 0    // print data_weight
     printf( ">>>>weight_row = %d\n>>>>weight_column = %d\n", data_mat_row, data_mat_row );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
     {
@@ -255,8 +260,7 @@ void adjustment_impl( int * * data_number, double * * data_src,
     {
 	data_rhs[ index ] = 0;
     }
-
-#if 1    // print data_rhs
+#if 0    // print data_rhs
     for( int index = 0; index < data_mat_row; index++ )
     {
 	printf( "%lf\n", data_rhs[ index ] );
@@ -268,7 +272,6 @@ void adjustment_impl( int * * data_number, double * * data_src,
     {
 	data_sol[ index ] = 0;
     }
-
 #if 0    // print data_sol
     for( int index = 0; index < data_mat_column; index++ )
     {
@@ -281,10 +284,13 @@ void adjustment_impl( int * * data_number, double * * data_src,
      * known node -- unknown node
      * unknown node -- known node
      * */
-    assemble_adjust_linsys( data_number, data_src, data_row, data_column,
-	    known_solution_1, known_solution_2,
-	    known_number_1, known_number_2,
-	    data_mat, data_rhs, data_weight );
+#if 1
+    assemble_adjust_linsys( data_mat, data_rhs, data_weight,
+	    data_number, data_src,
+	    number_known, data_known,
+	    data_row, count_known, count, row_count_unknown );
+#endif
+
 #if 1    // print data_mat
     printf( ">>>>mat_row = %d\n>>>>mat_column = %d\n", data_mat_row, data_mat_column );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
@@ -324,8 +330,11 @@ void adjustment_impl( int * * data_number, double * * data_src,
 
     // solver adjustment linear system
     /**/
+#if 1
     solver_adjust_linsys( data_mat, data_rhs, data_mat_row, data_mat_column,
 	    data_sol );
+#endif
+
 #if 1    // print data_mat
     printf( ">>>>mat_row = %d\n>>>>mat_column = %d\n", data_mat_row, data_mat_column );
     for( int index_i = 0; index_i < data_mat_row; index_i++ )
@@ -353,6 +362,11 @@ void adjustment_impl( int * * data_number, double * * data_src,
 #endif
 
     // free
+    for( int index = 0; index <data_mat_row; index++ )
+    {
+	free( *( data_weight + index ) );
+    }
+    free( data_weight );
     free( data_sol );
     free( data_rhs );
     for( int index = 0; index < data_mat_row; index++ )
@@ -360,5 +374,29 @@ void adjustment_impl( int * * data_number, double * * data_src,
 	free( *( data_mat + index ) );
     }
     free( data_mat );
-    free( node_unknown );
+}
+
+int IsKnownVertex( int * vertex, int * known_vertex, int size_vertex, int size_known_vertex )
+{
+    int status = 1;
+    int index_i = 0, index_j = 0;
+
+    for( index_i = 0; index_i < size_vertex; index_i++ )
+    {
+	for( index_j = 0; index_j < size_known_vertex; index_j++ )
+	{
+	    if( *( known_vertex + index_j ) == *( vertex + index_i ) )
+	    {
+		break;
+	    }
+	}
+
+	if( index_j == size_known_vertex )
+	{
+	    status = 0;
+	}
+
+    }
+
+    return status;
 }
