@@ -4,7 +4,8 @@ void assemble_adjust_linsys( double * * mat, double * rhs, double * * weight_mat
 	int * * data_number, double * * data_src,
 	int * number_known, double * * data_known,
 	int data_row, int count_known,
-	int count, int row_count_unknown )
+	int count, int row_count_unknown,
+	double * * original_mat, double * original_rhs )
 {
     puts( "============adjustment linear system assembling============" );
 
@@ -29,6 +30,11 @@ void assemble_adjust_linsys( double * * mat, double * rhs, double * * weight_mat
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] = 1;
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] = -1;
 		rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ];
+
+		// original linear system
+		original_mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] = 1;
+		original_mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] = -1;
+		original_rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ];
 
 		// mat = weight_mat * mat, rhs = weight_mat * rhs
 		mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] *= 
@@ -57,6 +63,11 @@ void assemble_adjust_linsys( double * * mat, double * rhs, double * * weight_mat
 		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] 
 			- data_known[ data_number[ index ][ 1 ] ][ index_i ];
 
+		    // original linear system
+		    original_mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] = -1;
+		    original_rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] 
+			- data_known[ data_number[ index ][ 1 ] ][ index_i ];
+
 		    // mat = weight_mat * mat, rhs = weight_mat * rhs
 		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 0 ] - count_known ) + index_i ] *=
 		       	weight_mat[ 3 * index + index_i ][ 3 * index + index_i ];
@@ -71,6 +82,11 @@ void assemble_adjust_linsys( double * * mat, double * rhs, double * * weight_mat
 		    weight_mat[ 3 * index + index_i ][ 3 * index + index_i ] = 1. / data_src[ index ][ lagrange_index_diag( index_i ) ];
 		    mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] = 1;
 		    rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] 
+			+ data_known[ data_number[ index ][ 0 ] ][ index_i ];
+
+		    // original linear system
+		    original_mat[ 3 * index + index_i ][ 3 * ( data_number[ index ][ 1 ] - count_known ) + index_i ] = 1;
+		    original_rhs[ 3 * index + index_i ] = data_src[ index ][ index_i ] 
 			+ data_known[ data_number[ index ][ 0 ] ][ index_i ];
 
 		    // mat = weight_mat * mat, rhs = weight_mat * rhs

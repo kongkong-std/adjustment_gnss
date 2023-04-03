@@ -108,3 +108,23 @@ void givens_rotation_impl( double val_a, double val_b, int index_i, int index_j,
     rhs[ index_i ] = givens_c * temp_1 - givens_s * temp_2;
     rhs[ index_j ] = givens_s * temp_1 + givens_c * temp_2;
 }
+
+void computing_residual( double * res, double * rhs, double * * mat, double * sol,
+	int mat_row, int mat_column )
+{
+    // r = b - Ax
+    /*
+     * r_i = b_i - ( Ax )_i
+     * ( Ax )_i = \sum _ j ^ n A_ij x_j
+     * */
+    for( int index = 0; index < mat_row; index++ )
+    {
+	double sum_temp = 0;
+	for( int index_j = 0; index_j < mat_column; index_j++ )
+	{
+	    sum_temp += mat[ index ][ index_j ] * sol[ index_j ];
+	}
+
+	res[ index ] = rhs[ index ] - sum_temp;
+    }
+}

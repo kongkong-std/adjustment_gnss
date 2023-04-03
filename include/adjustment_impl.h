@@ -19,11 +19,13 @@ int IsKnownVertex( int *, int *, int, int );
  * data_row, count_known: known vertex
  * count: count of vertex
  * row_count_unknown
+ * original linear system, original_mat, original_rhs
  * */
 void assemble_adjust_linsys( double * *, double *, double * *,
 	int * *, double * *,
 	int *, double * *,
-	int, int, int, int );
+	int, int, int, int,
+	double * *, double * );
 
 void update_linsys_weight_mat( double * *, double * *, double *, int, int );
 
@@ -31,5 +33,7 @@ void direct_solver_linsys( double * *, double *, double *, int );
 void thomas_algorithm_linsys( double *, double *, double *, double *, double *, int );
 
 void solver_adjust_linsys( double * *, double *, int, int, double * );
+
+void computing_residual( double *, double *, double * *, double *, int, int );
 
 #endif

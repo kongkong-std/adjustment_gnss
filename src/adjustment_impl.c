@@ -153,6 +153,55 @@ void adjustment_impl( int * * data_number, double * * data_src, int * number_kno
     double * data_rhs = NULL;
     double * data_sol = NULL;
 
+    // store original linear system
+    /*
+     * residual = original_rhs - original_mat * data_sol
+     * */
+    double * * original_mat = NULL;    // size data_mat_row x data_mat_column
+    double * original_rhs = NULL;    // size data_mat_row x 1
+    double * original_res = NULL;    // size data_mat_row x 1
+
+    // memory allocation for original_rhs, original_res
+    if( ( original_rhs = ( double * ) malloc( data_mat_row * sizeof( double ) ) ) 
+	    == NULL 
+	    || ( original_res = ( double * ) malloc( data_mat_row * sizeof( double ) ) ) == NULL )
+    {
+	fprintf( stderr, "Memory allocation failed!\n" );
+	exit( EXIT_FAILURE );
+    }
+
+    // initialize original_rhs = 0, original_res = 0
+    for( int index = 0; index < data_mat_row; index++ )
+    {
+	original_rhs[ index ] = 0;
+	original_res[ index ] = 0;
+    }
+
+    if( ( original_mat = ( double * * ) malloc( data_mat_row * sizeof( double * ) ) ) 
+	    == NULL )
+    {
+	fprintf( stderr, "Memory allocation failed!\n" );
+	exit( EXIT_FAILURE );
+    }
+    for( int index = 0; index < data_mat_row; index++ )
+    {
+	if( ( *( original_mat + index ) = ( double * ) malloc( data_mat_column * sizeof( double ) ) ) 
+		== NULL )
+	{
+	    fprintf( stderr, "Memory allocatio failed!\n" );
+	    exit( EXIT_FAILURE );
+	}
+    }
+
+    // initialize original_mat = 0
+    for( int index_i = 0; index_i < data_mat_row; index_i++ )
+    {
+	for( int index_j = 0; index_j < data_mat_column; index_j++ )
+	{
+	    original_mat[ index_i ][ index_j ] = 0;
+	}
+    }
+
     // data_mat
     /*
      * size data_mat = data_mat_row x data_mat_column
@@ -288,7 +337,8 @@ void adjustment_impl( int * * data_number, double * * data_src, int * number_kno
     assemble_adjust_linsys( data_mat, data_rhs, data_weight,
 	    data_number, data_src,
 	    number_known, data_known,
-	    data_row, count_known, count, row_count_unknown );
+	    data_row, count_known, count, row_count_unknown,
+	    original_mat, original_rhs );
 #endif
 
 #if 1    // print data_mat
@@ -361,7 +411,28 @@ void adjustment_impl( int * * data_number, double * * data_src, int * number_kno
     }
 #endif
 
+    // computing residual
+    /*
+     * original_res = original_rhs - original_mat * data_sol
+     * */
+    computing_residual( original_res, original_rhs, original_mat, data_sol,
+	    data_mat_row, data_mat_column );
+#if 1    // print residual
+    puts( "\n>>>>>>>>>>>>residual:" );
+    for( int index = 0; index < data_mat_row; index++ )
+    {
+	printf( "%.4le\n", original_res[ index ] );
+    }
+#endif
+
     // free
+    for( int index = 0; index < data_row; index++ )
+    {
+	free( *( original_mat + index ) );
+    }
+    free( original_mat );
+    free( original_rhs );
+    free( original_res );
     for( int index = 0; index <data_mat_row; index++ )
     {
 	free( *( data_weight + index ) );
